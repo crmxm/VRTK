@@ -10,6 +10,9 @@ namespace VRTK
     /// This is the fallback class that will just return default values.
     /// </remarks>
     [SDK_Description(typeof(SDK_FallbackSystem))]
+    [SDK_Description(typeof(SDK_FallbackSystem), 1)]
+    [SDK_Description(typeof(SDK_FallbackSystem), 2)]
+    [SDK_Description(typeof(SDK_FallbackSystem), 3)]
     public class SDK_FallbackBoundaries : SDK_BaseBoundaries
     {
         /// <summary>
@@ -25,7 +28,17 @@ namespace VRTK
         /// <returns>A transform of the object representing the play area in the scene.</returns>
         public override Transform GetPlayArea()
         {
-            return null;
+            cachedPlayArea = GetSDKManagerPlayArea();
+            if (cachedPlayArea == null)
+            {
+                GameObject fallbackCameraRig = VRTK_SharedMethods.FindEvenInactiveGameObject<SDK_FallbackCameraRig>();
+                if (fallbackCameraRig != null)
+                {
+                    cachedPlayArea = fallbackCameraRig.transform;
+                }
+            }
+
+            return cachedPlayArea;
         }
 
         /// <summary>
@@ -43,7 +56,7 @@ namespace VRTK
         /// <returns>The thickness of the drawn border.</returns>
         public override float GetPlayAreaBorderThickness()
         {
-            return 0f;
+            return 0.1f;
         }
 
         /// <summary>

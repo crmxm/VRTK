@@ -307,7 +307,6 @@ namespace VRTK
         /// The returned error descriptions handle the following cases for the current SDK infos:
         /// <list type="bullet">
         /// <item> <description>Its type doesn't exist anymore.</description> </item>
-        /// <item> <description>It's a fallback SDK.</description> </item>
         /// <item> <description>It doesn't have its scripting define symbols added.</description> </item>
         /// <item> <description>It's missing its vendor SDK.</description> </item>
         /// </list>
@@ -340,10 +339,6 @@ namespace VRTK
                 if (currentSDKInfo.originalTypeNameWhenFallbackIsUsed != null)
                 {
                     sdkErrorDescriptions.Add(string.Format("The SDK '{0}' doesn't exist anymore.", currentSDKInfo.originalTypeNameWhenFallbackIsUsed));
-                }
-                else if (currentSDKInfo.description.describesFallbackSDK)
-                {
-                    sdkErrorDescriptions.Add("A fallback SDK is used. Make sure to set a real SDK.");
                 }
                 else if (!installedSDKInfos.Contains(currentSDKInfo))
                 {
@@ -452,7 +447,6 @@ namespace VRTK
         /// Returns an error description in case any of these are true for the current SDK info:
         /// <list type="bullet">
         /// <item> <description>Its type doesn't exist anymore.</description> </item>
-        /// <item> <description>It's a fallback SDK.</description> </item>
         /// <item> <description>It doesn't have its scripting define symbols added.</description> </item>
         /// <item> <description>It's missing its vendor SDK.</description> </item>
         /// </list>
@@ -468,12 +462,7 @@ namespace VRTK
             Type baseType = typeof(BaseType);
             Type fallbackType = VRTK_SDKManager.SDKFallbackTypesByBaseType[baseType];
 
-            if (selectedType == fallbackType)
-            {
-                return string.Format("The fallback {0} SDK is being used because there is no other {0} SDK set in the SDK Setup.", prettyName);
-            }
-
-            if (!baseType.IsAssignableFrom(selectedType) || fallbackType.IsAssignableFrom(selectedType))
+            if (!baseType.IsAssignableFrom(selectedType) || (fallbackType.IsAssignableFrom(selectedType) && selectedType != fallbackType))
             {
                 string description = string.Format("The fallback {0} SDK is being used despite being set to '{1}'.", prettyName, selectedType.Name);
 

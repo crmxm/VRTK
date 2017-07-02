@@ -357,7 +357,7 @@ namespace VRTK
         protected virtual GameObject GetSDKManagerControllerRightHand(bool actual = false)
         {
             VRTK_SDKManager sdkManager = VRTK_SDKManager.instance;
-            if (sdkManager != null)
+            if (sdkManager != null && sdkManager.loadedSetup != null)
             {
                 return (actual ? sdkManager.loadedSetup.actualRightController : sdkManager.scriptAliasRightController);
             }
@@ -377,7 +377,7 @@ namespace VRTK
         protected virtual bool CheckControllerLeftHand(GameObject controller, bool actual)
         {
             VRTK_SDKManager sdkManager = VRTK_SDKManager.instance;
-            if (sdkManager != null && controller != null)
+            if (sdkManager != null && sdkManager.loadedSetup != null && controller != null)
             {
                 return (actual ? controller.Equals(sdkManager.loadedSetup.actualLeftController) : controller.Equals(sdkManager.scriptAliasLeftController));
             }
@@ -387,7 +387,7 @@ namespace VRTK
         protected virtual bool CheckControllerRightHand(GameObject controller, bool actual)
         {
             VRTK_SDKManager sdkManager = VRTK_SDKManager.instance;
-            if (sdkManager != null && controller != null)
+            if (sdkManager != null && sdkManager.loadedSetup != null && controller != null)
             {
                 return (actual ? controller.Equals(sdkManager.loadedSetup.actualRightController) : controller.Equals(sdkManager.scriptAliasRightController));
             }
@@ -402,7 +402,7 @@ namespace VRTK
         protected virtual GameObject GetSDKManagerControllerModelForHand(ControllerHand hand)
         {
             VRTK_SDKManager sdkManager = VRTK_SDKManager.instance;
-            if (sdkManager != null)
+            if (sdkManager != null && sdkManager.loadedSetup != null)
             {
                 switch (hand)
                 {
@@ -419,7 +419,7 @@ namespace VRTK
         {
             GameObject returnController = null;
             VRTK_SDKManager sdkManager = VRTK_SDKManager.instance;
-            if (sdkManager != null)
+            if (sdkManager != null && sdkManager.loadedSetup != null)
             {
                 if (IsControllerLeftHand(controller))
                 {

@@ -7,7 +7,10 @@ namespace VRTK
     /// <remarks>
     /// This is the fallback class that will just return default values.
     /// </remarks>
-    [SDK_Description("Fallback", null, null, null)]
+    [SDK_Description("Fallback (Oculus)", null, "Oculus", "Standalone")]
+    [SDK_Description("Fallback (OpenVR)", null, "OpenVR", "Standalone", 1)]
+    [SDK_Description("Fallback (Daydream)", null, "Daydream", "Android", 2)]
+    [SDK_Description("Fallback (GearVR)", null, "Oculus", "Android", 3)]
     public class SDK_FallbackSystem : SDK_BaseSystem
     {
         /// <summary>

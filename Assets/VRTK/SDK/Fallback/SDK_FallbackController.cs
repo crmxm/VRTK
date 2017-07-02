@@ -2,6 +2,7 @@
 namespace VRTK
 {
     using UnityEngine;
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -11,8 +12,89 @@ namespace VRTK
     /// This is the fallback class that will just return default values.
     /// </remarks>
     [SDK_Description(typeof(SDK_FallbackSystem))]
+    [SDK_Description(typeof(SDK_FallbackSystem), 1)]
+    [SDK_Description(typeof(SDK_FallbackSystem), 2)]
+    [SDK_Description(typeof(SDK_FallbackSystem), 3)]
     public class SDK_FallbackController : SDK_BaseController
     {
+        protected VRTK_TrackedController cachedLeftController;
+        protected VRTK_TrackedController cachedRightController;
+        protected SDK_FallbackTracker cachedLeftTracker;
+        protected SDK_FallbackTracker cachedRightTracker;
+        protected Vector2 buttonPressThreshold = new Vector2(0.2f, 0.5f);
+        protected Dictionary<ButtonTypes, bool> rightAxisButtonPressState = new Dictionary<ButtonTypes, bool>() {
+            { ButtonTypes.Trigger, false },
+            { ButtonTypes.Grip, false },
+        };
+        protected Dictionary<ButtonTypes, bool> leftAxisButtonPressState = new Dictionary<ButtonTypes, bool>() {
+            { ButtonTypes.Trigger, false },
+            { ButtonTypes.Grip, false },
+        };
+
+        protected List<string> validRightHands = new List<string>()
+        {
+            "OpenVR Controller - Right",
+            "Oculus Touch - Right",
+            "Oculus Remote"
+        };
+        protected List<string> validLeftHands = new List<string>()
+        {
+            "OpenVR Controller - Left",
+            "Oculus Touch - Left"
+        };
+
+        protected int[] rightControllerTouchCodes = new int[] { 15, 17, 10, 11 };
+        protected int[] rightControllerPressCodes = new int[] { 9, 0, 1, 7 };
+
+        protected int[] leftControllerTouchCodes = new int[] { 14, 16, 12, 13 };
+        protected int[] leftControllerPressCodes = new int[] { 8, 2, 3, 7 };
+
+        protected Dictionary<ButtonTypes, KeyCode?> rightControllerTouchKeyCodes = new Dictionary<ButtonTypes, KeyCode?>()
+        {
+            { ButtonTypes.Trigger, KeyCode.Joystick1Button15 },
+            { ButtonTypes.TriggerHairline, null },
+            { ButtonTypes.Grip, null },
+            { ButtonTypes.GripHairline, null },
+            { ButtonTypes.Touchpad, KeyCode.Joystick1Button17 },
+            { ButtonTypes.ButtonOne, KeyCode.Joystick1Button10 },
+            { ButtonTypes.ButtonTwo, KeyCode.Joystick1Button11 },
+            { ButtonTypes.StartMenu, null }
+        };
+        protected Dictionary<ButtonTypes, KeyCode?> rightControllerPressKeyCodes = new Dictionary<ButtonTypes, KeyCode?>()
+        {
+            { ButtonTypes.Trigger, null },
+            { ButtonTypes.TriggerHairline, null },
+            { ButtonTypes.Grip, null },
+            { ButtonTypes.GripHairline, null },
+            { ButtonTypes.Touchpad, KeyCode.Joystick1Button9 },
+            { ButtonTypes.ButtonOne, KeyCode.Joystick1Button0 },
+            { ButtonTypes.ButtonTwo, KeyCode.Joystick1Button1 },
+            { ButtonTypes.StartMenu, KeyCode.Joystick1Button7 }
+        };
+
+        protected Dictionary<ButtonTypes, KeyCode?> leftControllerTouchKeyCodes = new Dictionary<ButtonTypes, KeyCode?>()
+        {
+            { ButtonTypes.Trigger, KeyCode.Joystick1Button14 },
+            { ButtonTypes.TriggerHairline, null },
+            { ButtonTypes.Grip, null },
+            { ButtonTypes.GripHairline, null },
+            { ButtonTypes.Touchpad, KeyCode.Joystick1Button16 },
+            { ButtonTypes.ButtonOne, KeyCode.Joystick1Button12 },
+            { ButtonTypes.ButtonTwo, KeyCode.Joystick1Button13 },
+            { ButtonTypes.StartMenu, null }
+        };
+        protected Dictionary<ButtonTypes, KeyCode?> leftControllerPressKeyCodes = new Dictionary<ButtonTypes, KeyCode?>()
+        {
+            { ButtonTypes.Trigger, null },
+            { ButtonTypes.TriggerHairline, null },
+            { ButtonTypes.Grip, null },
+            { ButtonTypes.GripHairline, null },
+            { ButtonTypes.Touchpad, KeyCode.Joystick1Button8 },
+            { ButtonTypes.ButtonOne, KeyCode.Joystick1Button2 },
+            { ButtonTypes.ButtonTwo, KeyCode.Joystick1Button3 },
+            { ButtonTypes.StartMenu, KeyCode.Joystick1Button7 }
+        };
+
         /// <summary>
         /// The ProcessUpdate method enables an SDK to run logic for every Unity Update
         /// </summary>
@@ -37,7 +119,7 @@ namespace VRTK
         /// <returns>The ControllerType based on the SDK and headset being used.</returns>
         public override ControllerType GetCurrentControllerType()
         {
-            return ControllerType.Undefined;
+            return ControllerType.Custom;
         }
 
         /// <summary>
@@ -47,7 +129,7 @@ namespace VRTK
         /// <returns>A path to the resource that contains the collider GameObject.</returns>
         public override string GetControllerDefaultColliderPath(ControllerHand hand)
         {
-            return "";
+            return "ControllerColliders/Fallback";
         }
 
         /// <summary>
@@ -69,7 +151,8 @@ namespace VRTK
         /// <returns>The index of the given controller.</returns>
         public override uint GetControllerIndex(GameObject controller)
         {
-            return uint.MaxValue;
+            VRTK_TrackedController trackedObject = GetTrackedObject(controller);
+            return (trackedObject != null ? trackedObject.index : uint.MaxValue);
         }
 
         /// <summary>
@@ -80,6 +163,20 @@ namespace VRTK
         /// <returns>The GameObject of the controller</returns>
         public override GameObject GetControllerByIndex(uint index, bool actual = false)
         {
+            SetTrackedControllerCaches();
+            VRTK_SDKManager sdkManager = VRTK_SDKManager.instance;
+            if (sdkManager != null)
+            {
+                if (cachedLeftController != null && cachedLeftController.index == index)
+                {
+                    return (actual ? sdkManager.loadedSetup.actualLeftController : sdkManager.scriptAliasLeftController);
+                }
+
+                if (cachedRightController != null && cachedRightController.index == index)
+                {
+                    return (actual ? sdkManager.loadedSetup.actualRightController : sdkManager.scriptAliasRightController);
+                }
+            }
             return null;
         }
 
@@ -90,7 +187,7 @@ namespace VRTK
         /// <returns>A Transform containing the origin of the controller.</returns>
         public override Transform GetControllerOrigin(VRTK_ControllerReference controllerReference)
         {
-            return null;
+            return VRTK_SDK_Bridge.GetPlayArea();
         }
 
         /// <summary>
@@ -110,7 +207,12 @@ namespace VRTK
         /// <returns>The GameObject containing the left hand controller.</returns>
         public override GameObject GetControllerLeftHand(bool actual = false)
         {
-            return null;
+            GameObject controller = GetSDKManagerControllerLeftHand(actual);
+            if (controller == null && actual)
+            {
+                controller = VRTK_SharedMethods.FindEvenInactiveGameObject<SDK_FallbackCameraRig>("LeftHandAnchor");
+            }
+            return controller;
         }
 
         /// <summary>
@@ -120,7 +222,12 @@ namespace VRTK
         /// <returns>The GameObject containing the right hand controller.</returns>
         public override GameObject GetControllerRightHand(bool actual = false)
         {
-            return null;
+            GameObject controller = GetSDKManagerControllerRightHand(actual);
+            if (controller == null && actual)
+            {
+                controller = VRTK_SharedMethods.FindEvenInactiveGameObject<SDK_FallbackCameraRig>("RightHandAnchor");
+            }
+            return controller;
         }
 
         /// <summary>
@@ -130,7 +237,7 @@ namespace VRTK
         /// <returns>Returns true if the given controller is the left hand controller.</returns>
         public override bool IsControllerLeftHand(GameObject controller)
         {
-            return false;
+            return CheckActualOrScriptAliasControllerIsLeftHand(controller);
         }
 
         /// <summary>
@@ -140,7 +247,7 @@ namespace VRTK
         /// <returns>Returns true if the given controller is the right hand controller.</returns>
         public override bool IsControllerRightHand(GameObject controller)
         {
-            return false;
+            return CheckActualOrScriptAliasControllerIsRightHand(controller);
         }
 
         /// <summary>
@@ -151,7 +258,7 @@ namespace VRTK
         /// <returns>Returns true if the given controller is the left hand controller.</returns>
         public override bool IsControllerLeftHand(GameObject controller, bool actual)
         {
-            return false;
+            return CheckControllerLeftHand(controller, actual);
         }
 
         /// <summary>
@@ -162,7 +269,7 @@ namespace VRTK
         /// <returns>Returns true if the given controller is the right hand controller.</returns>
         public override bool IsControllerRightHand(GameObject controller, bool actual)
         {
-            return false;
+            return CheckControllerRightHand(controller, actual);
         }
 
         /// <summary>
@@ -172,7 +279,7 @@ namespace VRTK
         /// <returns>The GameObject that has the model alias within it.</returns>
         public override GameObject GetControllerModel(GameObject controller)
         {
-            return null;
+            return GetControllerModelFromController(controller);
         }
 
         /// <summary>
@@ -273,7 +380,41 @@ namespace VRTK
         /// <returns>A Vector2 of the X/Y values of the button axis. If no axis values exist for the given button, then a Vector2.Zero is returned.</returns>
         public override Vector2 GetButtonAxis(ButtonTypes buttonType, VRTK_ControllerReference controllerReference)
         {
+            if (!VRTK_ControllerReference.IsValid(controllerReference))
+            {
+                return Vector2.zero;
+            }
+
+            bool isRightController = (controllerReference.hand == ControllerHand.Right);
+
+            if ((isRightController && cachedRightTracker == null) || (!isRightController && cachedLeftTracker == null))
+            {
+                return Vector2.zero;
+            }
+
+            switch (buttonType)
+            {
+                case ButtonTypes.Trigger:
+                    return new Vector2(GetAxisValue((isRightController ? cachedRightTracker.triggerAxisName : cachedLeftTracker.triggerAxisName)), 0f);
+                case ButtonTypes.Grip:
+                    return new Vector2(GetAxisValue((isRightController ? cachedRightTracker.gripAxisName : cachedLeftTracker.gripAxisName)), 0f);
+                case ButtonTypes.Touchpad:
+                    return new Vector2(GetAxisValue((isRightController ? cachedRightTracker.touchpadHorizontalAxisName : cachedLeftTracker.touchpadHorizontalAxisName)), GetAxisValue((isRightController ? cachedRightTracker.touchpadVerticalAxisName : cachedLeftTracker.touchpadVerticalAxisName)));
+            }
             return Vector2.zero;
+        }
+
+        protected virtual float GetAxisValue(string axisName)
+        {
+            try
+            {
+                return Input.GetAxis(axisName);
+            }
+            catch (ArgumentException ae)
+            {
+                VRTK_Logger.Warn(ae.Message);
+            }
+            return 0f;
         }
 
         /// <summary>
@@ -296,7 +437,221 @@ namespace VRTK
         /// <returns>Returns true if the given button is in the state of the given press type on the given controller reference.</returns>
         public override bool GetControllerButtonState(ButtonTypes buttonType, ButtonPressTypes pressType, VRTK_ControllerReference controllerReference)
         {
+            if (!VRTK_ControllerReference.IsValid(controllerReference))
+            {
+                return false;
+            }
+
+            bool isRightController = (controllerReference.hand == ControllerHand.Right);
+            if (!rightControllerTouchKeyCodes.ContainsKey(buttonType))
+            {
+                Debug.Log(buttonType);
+            }
+            KeyCode? touchButton = (isRightController ? rightControllerTouchKeyCodes[buttonType] : leftControllerTouchKeyCodes[buttonType]);
+            KeyCode? pressButton = (isRightController ? rightControllerPressKeyCodes[buttonType] : leftControllerPressKeyCodes[buttonType]);
+
+            switch (buttonType)
+            {
+                case ButtonTypes.Trigger:
+                    switch (pressType)
+                    {
+                        case ButtonPressTypes.Touch:
+                        case ButtonPressTypes.TouchDown:
+                        case ButtonPressTypes.TouchUp:
+                            return IsButtonPressed(pressType, touchButton, pressButton);
+                        case ButtonPressTypes.Press:
+                        case ButtonPressTypes.PressDown:
+                        case ButtonPressTypes.PressUp:
+                            return IsAxisButtonPress(controllerReference, buttonType, pressType);
+                    }
+                    break;
+                case ButtonTypes.Grip:
+                    return IsAxisButtonPress(controllerReference, buttonType, pressType);
+                case ButtonTypes.Touchpad:
+                    return IsButtonPressed(pressType, touchButton, pressButton);
+                case ButtonTypes.ButtonOne:
+                    return IsButtonPressed(pressType, touchButton, pressButton);
+                case ButtonTypes.ButtonTwo:
+                    return IsButtonPressed(pressType, touchButton, pressButton);
+                case ButtonTypes.StartMenu:
+                    return IsButtonPressed(pressType, touchButton, pressButton);
+            }
+
             return false;
+        }
+
+        protected virtual bool IsAxisButtonPress(VRTK_ControllerReference controllerReference, ButtonTypes buttonType, ButtonPressTypes pressType)
+        {
+            bool isRightController = (controllerReference.hand == ControllerHand.Right);
+            Vector2 axisValue = GetButtonAxis(buttonType, controllerReference);
+
+            if (isRightController)
+            {
+                bool previousAxisState = rightAxisButtonPressState[buttonType];
+                if (pressType == ButtonPressTypes.PressDown && !previousAxisState)
+                {
+                    return GetAxisPressState(ref rightAxisButtonPressState, buttonType, axisValue.x);
+                }
+                if (pressType == ButtonPressTypes.PressUp && previousAxisState)
+                {
+                    return !GetAxisPressState(ref rightAxisButtonPressState, buttonType, axisValue.x);
+                }
+            }
+            else
+            {
+                bool previousAxisState = leftAxisButtonPressState[buttonType];
+                if (pressType == ButtonPressTypes.PressDown && !previousAxisState)
+                {
+                    return GetAxisPressState(ref leftAxisButtonPressState, buttonType, axisValue.x);
+                }
+                if (pressType == ButtonPressTypes.PressUp && previousAxisState)
+                {
+                    return !GetAxisPressState(ref leftAxisButtonPressState, buttonType, axisValue.x);
+                }
+            }
+            return false;
+        }
+
+        protected virtual bool GetAxisPressState(ref Dictionary<ButtonTypes, bool> axisButtonPressState, ButtonTypes buttonType, float axisValue)
+        {
+            if (axisButtonPressState[buttonType] && axisValue <= buttonPressThreshold.x)
+            {
+                axisButtonPressState[buttonType] = false;
+            }
+            else if (!axisButtonPressState[buttonType] && axisValue >= buttonPressThreshold.y)
+            {
+                axisButtonPressState[buttonType] = true;
+            }
+            return axisButtonPressState[buttonType];
+        }
+
+        protected virtual bool IsButtonPressed(ButtonPressTypes pressType, KeyCode? touchKey, KeyCode? pressKey)
+        {
+            switch (pressType)
+            {
+                case ButtonPressTypes.Touch:
+                    return (touchKey != null && Input.GetKey((KeyCode)touchKey));
+                case ButtonPressTypes.TouchDown:
+                    return (touchKey != null && Input.GetKeyDown((KeyCode)touchKey));
+                case ButtonPressTypes.TouchUp:
+                    return (touchKey != null && Input.GetKeyUp((KeyCode)touchKey));
+                case ButtonPressTypes.Press:
+                    return (pressKey != null && Input.GetKey((KeyCode)pressKey));
+                case ButtonPressTypes.PressDown:
+                    return (pressKey != null && Input.GetKeyDown((KeyCode)pressKey));
+                case ButtonPressTypes.PressUp:
+                    return (pressKey != null && Input.GetKeyUp((KeyCode)pressKey));
+            }
+            return false;
+        }
+
+        protected virtual void SetTrackedControllerCaches(bool forceRefresh = false)
+        {
+            if (forceRefresh)
+            {
+                cachedLeftController = null;
+                cachedRightController = null;
+            }
+
+            VRTK_SDKManager sdkManager = VRTK_SDKManager.instance;
+            if (sdkManager != null && sdkManager.loadedSetup != null)
+            {
+                if (cachedLeftController == null && sdkManager.loadedSetup.actualLeftController != null)
+                {
+                    cachedLeftController = sdkManager.loadedSetup.actualLeftController.GetComponent<VRTK_TrackedController>();
+                    SetControllerIndex(ref cachedLeftController);
+                    if (cachedLeftController != null)
+                    {
+                        cachedLeftTracker = cachedLeftController.GetComponent<SDK_FallbackTracker>();
+                    }
+                    SetControllerButtons(ControllerHand.Left);
+                }
+                if (cachedRightController == null && sdkManager.loadedSetup.actualRightController != null)
+                {
+                    cachedRightController = sdkManager.loadedSetup.actualRightController.GetComponent<VRTK_TrackedController>();
+                    SetControllerIndex(ref cachedRightController);
+                    if (cachedRightController != null)
+                    {
+                        cachedRightTracker = cachedRightController.GetComponent<SDK_FallbackTracker>();
+                    }
+                    SetControllerButtons(ControllerHand.Right);
+                }
+            }
+        }
+
+        protected virtual void SetControllerButtons(ControllerHand hand)
+        {
+            List<string> checkhands = (hand == ControllerHand.Right ? validRightHands : validLeftHands);
+
+            bool joystickFound = false;
+            int validJoystickIndex = 0;
+            string[] availableJoysticks = Input.GetJoystickNames();
+            for (int i = 0; i < availableJoysticks.Length; i++)
+            {
+                if (checkhands.Contains(availableJoysticks[i]))
+                {
+                    joystickFound = true;
+                    validJoystickIndex = i + 1;
+                }
+            }
+
+            if (joystickFound)
+            {
+                if (hand == ControllerHand.Right)
+                {
+                    SetControllerButtonValues(ref rightControllerTouchKeyCodes, ref rightControllerPressKeyCodes, validJoystickIndex, rightControllerTouchCodes, rightControllerPressCodes);
+                }
+                else
+                {
+                    SetControllerButtonValues(ref leftControllerTouchKeyCodes, ref leftControllerPressKeyCodes, validJoystickIndex, leftControllerTouchCodes, leftControllerPressCodes);
+                }
+            }
+        }
+
+        protected virtual void SetControllerButtonValues(ref Dictionary<ButtonTypes, KeyCode?> touchKeyCodes, ref Dictionary<ButtonTypes, KeyCode?> pressKeyCodes, int joystickIndex, int[] touchCodes, int[] pressCodes)
+        {
+            touchKeyCodes[ButtonTypes.Trigger] = StringToKeyCode(joystickIndex, touchCodes[0]);
+            touchKeyCodes[ButtonTypes.Touchpad] = StringToKeyCode(joystickIndex, touchCodes[1]);
+            touchKeyCodes[ButtonTypes.ButtonOne] = StringToKeyCode(joystickIndex, touchCodes[2]);
+            touchKeyCodes[ButtonTypes.ButtonTwo] = StringToKeyCode(joystickIndex, touchCodes[3]);
+
+            pressKeyCodes[ButtonTypes.Touchpad] = StringToKeyCode(joystickIndex, pressCodes[0]);
+            pressKeyCodes[ButtonTypes.ButtonOne] = StringToKeyCode(joystickIndex, pressCodes[1]);
+            pressKeyCodes[ButtonTypes.ButtonTwo] = StringToKeyCode(joystickIndex, pressCodes[2]);
+            pressKeyCodes[ButtonTypes.StartMenu] = StringToKeyCode(joystickIndex, pressCodes[3]);
+        }
+
+        protected virtual KeyCode StringToKeyCode(int index, int code)
+        {
+            return (KeyCode)Enum.Parse(typeof(KeyCode), "Joystick" + index + "Button" + code);
+        }
+
+        protected virtual void SetControllerIndex(ref VRTK_TrackedController trackedController)
+        {
+            if (trackedController != null)
+            {
+                SDK_FallbackTracker tracker = trackedController.GetComponent<SDK_FallbackTracker>();
+                if (tracker != null)
+                {
+                    trackedController.index = tracker.index;
+                }
+            }
+        }
+
+        protected virtual VRTK_TrackedController GetTrackedObject(GameObject controller)
+        {
+            SetTrackedControllerCaches();
+            VRTK_TrackedController trackedObject = null;
+
+            if (IsControllerLeftHand(controller))
+            {
+                trackedObject = cachedLeftController;
+            }
+            else if (IsControllerRightHand(controller))
+            {
+                trackedObject = cachedRightController;
+            }
+            return trackedObject;
         }
     }
 }
