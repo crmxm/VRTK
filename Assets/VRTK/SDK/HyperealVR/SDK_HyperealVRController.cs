@@ -53,6 +53,15 @@ namespace VRTK
         }
 
         /// <summary>
+        /// The GetCurrentControllerType method returns the current used ControllerType based on the SDK and headset being used.
+        /// </summary>
+        /// <returns>The ControllerType based on the SDK and headset being used.</returns>
+        public override ControllerType GetCurrentControllerType()
+        {
+            return ControllerType.Hypereal_Sens;
+        }
+
+        /// <summary>
         /// The GetControllerDefaultColliderPath returns the path to the prefab that contains the collider objects for the default controller of this SDK.
         /// </summary>
         /// <param name="hand">The controller hand to check for</param>
@@ -381,6 +390,102 @@ namespace VRTK
             return Vector3.zero;
         }
 
+        /// <summary>
+        /// The IsTouchpadStatic method is used to determine if the touchpad is currently not being moved.
+        /// </summary>
+        /// <param name="currentAxisValues"></param>
+        /// <param name="previousAxisValues"></param>
+        /// <param name="compareFidelity"></param>
+        /// <returns>Returns true if the touchpad is not currently being touched or moved.</returns>
+        public override bool IsTouchpadStatic(bool isTouched, Vector2 currentAxisValues, Vector2 previousAxisValues, int compareFidelity)
+        {
+            //TODO: 
+            return (!isTouched || VRTK_SharedMethods.Vector2ShallowCompare(currentAxisValues, previousAxisValues, compareFidelity));
+        }
+
+        /// <summary>
+        /// The GetButtonAxis method retrieves the current X/Y axis values for the given button type on the given controller reference.
+        /// </summary>
+        /// <param name="buttonType">The type of button to check for the axis on.</param>
+        /// <param name="controllerReference">The reference to the controller to check the button axis on.</param>
+        /// <returns>A Vector2 of the X/Y values of the button axis. If no axis values exist for the given button, then a Vector2.Zero is returned.</returns>
+        public override Vector2 GetButtonAxis(ButtonTypes buttonType, VRTK_ControllerReference controllerReference)
+        {
+            uint index = VRTK_ControllerReference.GetRealIndex(controllerReference);
+            HyDevice ctrlDevice = MappingIndex2HyDevice(index);
+            if (ctrlDevice == HyDevice.Device_Unknown)
+                return Vector2.zero;
+
+            HyInput input = HyInputManager.Instance.GetInputDevice(ctrlDevice);
+
+            switch (buttonType)
+            {
+                case ButtonTypes.Touchpad:
+                    return input.GetTouchpadAxis();
+                case ButtonTypes.Trigger:
+                    return new Vector2(input.GetTriggerAxis(HyInputKey.IndexTrigger), 0f);
+                case ButtonTypes.Grip:
+                    return new Vector2(input.GetTriggerAxis(HyInputKey.SideTrigger), 0f);
+            }
+            return Vector2.zero;
+        }
+
+        /// <summary>
+        /// The GetButtonHairlineDelta method is used to get the difference between the current button press and the previous frame button press.
+        /// </summary>
+        /// <param name="buttonType">The type of button to get the hairline delta for.</param>
+        /// <param name="controllerReference">The reference to the controller to get the hairline delta for.</param>
+        /// <returns>The delta between the button presses.</returns>
+        public override float GetButtonHairlineDelta(ButtonTypes buttonType, VRTK_ControllerReference controllerReference)
+        {
+            uint index = VRTK_ControllerReference.GetRealIndex(controllerReference);
+            HyDevice ctrlDevice = MappingIndex2HyDevice(index);
+            if (ctrlDevice == HyDevice.Device_Unknown)
+                return 0f;
+
+            HyInput input = HyInputManager.Instance.GetInputDevice(ctrlDevice);
+
+            return (buttonType == ButtonTypes.Trigger ? 0.1f : 0f);
+        }
+
+        /// <summary>
+        /// The GetControllerButtonState method is used to determine if the given controller button for the given press type on the given controller reference is currently taking place.
+        /// </summary>
+        /// <param name="buttonType">The type of button to check for the state of.</param>
+        /// <param name="pressType">The button state to check for.</param>
+        /// <param name="controllerReference">The reference to the controller to check the button state on.</param>
+        /// <returns>Returns true if the given button is in the state of the given press type on the given controller reference.</returns>
+        public override bool GetControllerButtonState(ButtonTypes buttonType, ButtonPressTypes pressType, VRTK_ControllerReference controllerReference)
+        {
+            uint index = VRTK_ControllerReference.GetRealIndex(controllerReference);
+            HyDevice ctrlDevice = MappingIndex2HyDevice(index);
+            if (ctrlDevice == HyDevice.Device_Unknown)
+                return false;
+
+            HyInput input = HyInputManager.Instance.GetInputDevice(ctrlDevice);
+
+            switch (buttonType)
+            {
+                case ButtonTypes.ButtonOne:
+                    return false;
+                case ButtonTypes.ButtonTwo:
+                    return false;
+                case ButtonTypes.Grip:
+                    return IsButtonPressed(ctrlDevice, pressType, HyInputKey.SideTrigger);
+                case ButtonTypes.GripHairline:
+                    return false;
+                case ButtonTypes.StartMenu:
+                    return IsButtonPressed(ctrlDevice, pressType, HyInputKey.Menu);
+                case ButtonTypes.Trigger:
+                    return IsButtonPressed(ctrlDevice, pressType, HyInputKey.IndexTrigger);
+                case ButtonTypes.TriggerHairline:
+                    return false;
+                case ButtonTypes.Touchpad:
+                    return IsButtonPressed(ctrlDevice, pressType, HyInputKey.Touchpad);
+            }
+            return false;
+        }
+
         private void OnTrackedDeviceRoleChanged<T>(T ignoredArgument)
         {
             SetTrackedControllerCaches(true);
@@ -531,65 +636,6 @@ namespace VRTK
                     return (hand == ControllerHand.Left ? "enter_button" : "home_button") + suffix;
             }
             return null;
-        }
-
-        /// <summary>
-        /// The GetCurrentControllerType method returns the current used ControllerType based on the SDK and headset being used.
-        /// </summary>
-        /// <returns>The ControllerType based on the SDK and headset being used.</returns>
-        public override ControllerType GetCurrentControllerType()
-        {
-            return ControllerType.Hypereal_Sens;
-        }
-
-        /// <summary>
-        /// The GetControllerButtonState method is used to determine if the given controller button for the given press type on the given controller reference is currently taking place.
-        /// </summary>
-        /// <param name="buttonType">The type of button to check for the state of.</param>
-        /// <param name="pressType">The button state to check for.</param>
-        /// <param name="controllerReference">The reference to the controller to check the button state on.</param>
-        /// <returns>Returns true if the given button is in the state of the given press type on the given controller reference.</returns>
-        public override bool GetControllerButtonState(ButtonTypes buttonType, ButtonPressTypes pressType, VRTK_ControllerReference controllerReference)
-        {
-            //TODO;
-            return false;
-        }
-
-        /// <summary>
-        /// The GetButtonAxis method retrieves the current X/Y axis values for the given button type on the given controller reference.
-        /// </summary>
-        /// <param name="buttonType">The type of button to check for the axis on.</param>
-        /// <param name="controllerReference">The reference to the controller to check the button axis on.</param>
-        /// <returns>A Vector2 of the X/Y values of the button axis. If no axis values exist for the given button, then a Vector2.Zero is returned.</returns>
-        public override Vector2 GetButtonAxis(ButtonTypes buttonType, VRTK_ControllerReference controllerReference)
-        {
-            //TODO;
-            return Vector2.zero;
-        }
-
-        /// <summary>
-        /// The GetButtonHairlineDelta method is used to get the difference between the current button press and the previous frame button press.
-        /// </summary>
-        /// <param name="buttonType">The type of button to get the hairline delta for.</param>
-        /// <param name="controllerReference">The reference to the controller to get the hairline delta for.</param>
-        /// <returns>The delta between the button presses.</returns>
-        public override float GetButtonHairlineDelta(ButtonTypes buttonType, VRTK_ControllerReference controllerReference)
-        {
-            //TODO
-            return 0.0f;
-        }
-
-        /// <summary>
-        /// The IsTouchpadStatic method is used to determine if the touchpad is currently not being moved.
-        /// </summary>
-        /// <param name="currentAxisValues"></param>
-        /// <param name="previousAxisValues"></param>
-        /// <param name="compareFidelity"></param>
-        /// <returns>Returns true if the touchpad is not currently being touched or moved.</returns>
-        public override bool IsTouchpadStatic(bool isTouched, Vector2 currentAxisValues, Vector2 previousAxisValues, int compareFidelity)
-        {
-            //TODO;
-            return false;
         }
 #endif
     }
