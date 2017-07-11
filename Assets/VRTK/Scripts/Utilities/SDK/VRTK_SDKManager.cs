@@ -652,8 +652,17 @@ namespace VRTK
         {
             yield return null;
 
-            string loadedDeviceName = string.IsNullOrEmpty(VRSettings.loadedDeviceName) ? "None" : VRSettings.loadedDeviceName;
-            loadedSetup = sdkSetups.FirstOrDefault(setup => setup.usedVRDeviceNames.Contains(loadedDeviceName));
+            //string loadedDeviceName = string.IsNullOrEmpty(VRSettings.loadedDeviceName) ? "None" : VRSettings.loadedDeviceName;
+            bool isDeviceLoaded = !string.IsNullOrEmpty(VRSettings.loadedDeviceName);
+
+            if (isDeviceLoaded)
+                loadedSetup = sdkSetups.FirstOrDefault(setup => setup.usedVRDeviceNames.Contains(VRSettings.loadedDeviceName));
+            else
+#if VRTK_DEFINE_SDK_HYPEREALVR
+                loadedSetup = sdkSetups.FirstOrDefault(setup => setup.usedVRDeviceNames.Contains("HyperealVR"));
+#else
+                loadedSetup = sdkSetups.FirstOrDefault(setup => setup.usedVRDeviceNames.Contains("None"));
+#endif
 
             if (loadedSetup == null)
             {
@@ -672,35 +681,68 @@ namespace VRTK
                 // The loaded VR Device is actually a VR Device
                 VRSettings.enabled = true;
 
-                if (!VRDevice.isPresent)
-                {
-                    // Despite being loaded, the loaded VR Device isn't working correctly
-                    int nextSetupIndex = Array.IndexOf(sdkSetups, loadedSetup) + 1;
-                    string errorMessage = "An SDK Setup from the provided list could be loaded, but the device is not in working order.";
-
-                    ToggleBehaviours(false);
-                    loadedSetup = null;
-
-                    if (nextSetupIndex < sdkSetups.Length && sdkSetups.Length - nextSetupIndex > 0)
+                if (isDeviceLoaded)
+                    if (!VRDevice.isPresent)
                     {
-                        // Let's try loading the remaining SDK Setups
-                        errorMessage += " Now retrying with the remaining SDK Setups from the provided list...";
-                        VRTK_Logger.Warn(errorMessage);
+                        // Despite being loaded, the loaded VR Device isn't working correctly
+                        int nextSetupIndex = Array.IndexOf(sdkSetups, loadedSetup) + 1;
+                        string errorMessage = "An SDK Setup from the provided list could be loaded, but the device is not in working order.";
+
+                        ToggleBehaviours(false);
+                        loadedSetup = null;
+
+                        if (nextSetupIndex < sdkSetups.Length && sdkSetups.Length - nextSetupIndex > 0)
+                        {
+                            // Let's try loading the remaining SDK Setups
+                            errorMessage += " Now retrying with the remaining SDK Setups from the provided list...";
+                            VRTK_Logger.Warn(errorMessage);
+                            OnLoadedSetupChanged(new LoadedSetupChangeEventArgs(previousLoadedSetup, null, errorMessage));
+
+                            TryLoadSDKSetup(nextSetupIndex, false, sdkSetups);
+                            yield break;
+                        }
+
+                        // There are no other SDK Setups
+                        UnloadSDKSetup();
+
+                        errorMessage += " There are no other Setups in the provided list to try.";
+                        VRTK_Logger.Error(errorMessage);
                         OnLoadedSetupChanged(new LoadedSetupChangeEventArgs(previousLoadedSetup, null, errorMessage));
 
-                        TryLoadSDKSetup(nextSetupIndex, false, sdkSetups);
                         yield break;
                     }
+#if !VRTK_DEFINE_SDK_HYPEREALVR
+                else
+                    if (!VRDevice.isPresent)
+                    {
+                        // Despite being loaded, the loaded VR Device isn't working correctly
+                        int nextSetupIndex = Array.IndexOf(sdkSetups, loadedSetup) + 1;
+                        string errorMessage = "An SDK Setup from the provided list could be loaded, but the device is not in working order.";
 
-                    // There are no other SDK Setups
-                    UnloadSDKSetup();
+                        ToggleBehaviours(false);
+                        loadedSetup = null;
 
-                    errorMessage += " There are no other Setups in the provided list to try.";
-                    VRTK_Logger.Error(errorMessage);
-                    OnLoadedSetupChanged(new LoadedSetupChangeEventArgs(previousLoadedSetup, null, errorMessage));
+                        if (nextSetupIndex < sdkSetups.Length && sdkSetups.Length - nextSetupIndex > 0)
+                        {
+                            // Let's try loading the remaining SDK Setups
+                            errorMessage += " Now retrying with the remaining SDK Setups from the provided list...";
+                            VRTK_Logger.Warn(errorMessage);
+                            OnLoadedSetupChanged(new LoadedSetupChangeEventArgs(previousLoadedSetup, null, errorMessage));
 
-                    yield break;
-                }
+                            TryLoadSDKSetup(nextSetupIndex, false, sdkSetups);
+                            yield break;
+                        }
+
+                        // There are no other SDK Setups
+                        UnloadSDKSetup();
+
+                        errorMessage += " There are no other Setups in the provided list to try.";
+                        VRTK_Logger.Error(errorMessage);
+                        OnLoadedSetupChanged(new LoadedSetupChangeEventArgs(previousLoadedSetup, null, errorMessage));
+
+                        yield break;
+                    }
+#endif
             }
 
             // A VR Device was correctly loaded, is working and matches an SDK Setup
