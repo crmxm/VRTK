@@ -43,13 +43,7 @@ namespace VRTK
         {
             cachedHeadset = GetSDKManagerHeadset();
             if (cachedHeadset == null)
-            {
-				var hyperealHead = VRTK_SharedMethods.FindEvenInactiveGameObject<SelectVRPluginDemo>();
-                if (hyperealHead)
-                {
-					cachedHeadset = hyperealHead.transform.Find("HyperealVR(origin)/Camera(head)");
-                }
-            }
+                cachedHeadset = VRTK_SharedMethods.FindEvenInactiveGameObject<HyHead>().transform;
             return cachedHeadset;
         }
 

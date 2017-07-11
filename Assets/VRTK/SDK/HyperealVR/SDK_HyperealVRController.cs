@@ -147,13 +147,9 @@ namespace VRTK
         public override GameObject GetControllerLeftHand(bool actual = false)
         {
 			if (actual) {
-				var hyperealHead = VRTK_SharedMethods.FindEvenInactiveGameObject<SelectVRPluginDemo> ();
-				if (hyperealHead) {
-					var controller = hyperealHead.transform.Find ("HyperealVR(origin)/HyTrackObjRig/ControllerLeft");
-					if (controller) {
-						return controller.gameObject;
-					}
-				}
+				HyTrackObjRig trackedObjRig = VRTK_SharedMethods.FindEvenInactiveGameObject<HyTrackObjRig> ().GetComponent<HyTrackObjRig>();
+				if (trackedObjRig)
+                    return trackedObjRig.leftController;
 			} else {
 				var sdkManager = VRTK_SDKManager.instance;
 				if (sdkManager != null) {
@@ -171,13 +167,9 @@ namespace VRTK
         public override GameObject GetControllerRightHand(bool actual = false)
         {
 			if (actual) {
-				var hyperealHead = VRTK_SharedMethods.FindEvenInactiveGameObject<SelectVRPluginDemo> ();
-				if (hyperealHead) {
-					var controller = hyperealHead.transform.Find ("HyperealVR(origin)/HyTrackObjRig/ControllerRight");
-					if (controller) {
-						return controller.gameObject;
-					}
-				}
+				HyTrackObjRig trackedObjRig = VRTK_SharedMethods.FindEvenInactiveGameObject<HyTrackObjRig> ().GetComponent<HyTrackObjRig>();
+				if (trackedObjRig)
+                    return trackedObjRig.rightController;
 			} else {
 				var sdkManager = VRTK_SDKManager.instance;
 				if (sdkManager != null) {

@@ -37,11 +37,9 @@ namespace VRTK
             cachedPlayArea = GetSDKManagerPlayArea();
             if (cachedPlayArea == null)
             {
-                var cachedCameraRig = VRTK_SharedMethods.FindEvenInactiveGameObject<SelectVRPluginDemo>();
-                if (cachedCameraRig)
-                {
-                    cachedPlayArea = cachedCameraRig.transform;
-                }
+                Transform myHead = VRTK_SharedMethods.FindEvenInactiveGameObject<HyHead>().transform;
+                if (myHead)
+                    cachedPlayArea = myHead.parent;
             }
             return cachedPlayArea;
         }
