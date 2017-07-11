@@ -289,23 +289,12 @@ namespace VRTK
         public override void HapticPulse(VRTK_ControllerReference ctrl, float strength = 0.5f)
         {
             uint index = VRTK_ControllerReference.GetRealIndex(ctrl);
-            if (index < uint.MaxValue)
-            {
-                var controller = GetControllerByIndex(index);
+            HyDevice ctrlDevice = MappingIndex2HyDevice(index);
 
-                if (IsControllerLeftHand(controller))
-                {
-                    //hapticsProceduralClipLeft.Reset();
-                    //hapticsProceduralClipLeft.WriteSample((byte)(strength * byte.MaxValue));
-                    //OVRHaptics.LeftChannel.Preempt(hapticsProceduralClipLeft);
-                }
-                else if (IsControllerRightHand(controller))
-                {
-                    //hapticsProceduralClipRight.Reset();
-                    //hapticsProceduralClipRight.WriteSample((byte)(strength * byte.MaxValue));
-                    //OVRHaptics.RightChannel.Preempt(hapticsProceduralClipRight);
-                }
-            }
+            if (ctrlDevice == HyDevice.Device_Unknown)
+                return;
+
+            HyperealVR.Instance.SetHapticFeedback(ctrlDevice, 0.5f, strength);
         }
 
         /// <summary>
