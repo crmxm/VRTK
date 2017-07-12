@@ -25,11 +25,11 @@ namespace VRTK
         private VRTK_TrackedController cachedLeftTrackedObject;
         private VRTK_TrackedController cachedRightTrackedObject;
 
-        private bool[] previousHairTriggerState = new bool[2];
-        private bool[] currentHairTriggerState = new bool[2];
+        //private bool[] previousHairTriggerState = new bool[2];
+        //private bool[] currentHairTriggerState = new bool[2];
 
-        private bool[] previousHairGripState = new bool[2];
-        private bool[] currentHairGripState = new bool[2];
+        //private bool[] previousHairGripState = new bool[2];
+        //private bool[] currentHairGripState = new bool[2];
         //private Dictionary<GameObject, HyperealVR_TrackedObject> cachedTrackedObjectsByGameObject = new Dictionary<GameObject, HyperealVR_TrackedObject>();
         //private Dictionary<uint, HyperealVR_TrackedObject> cachedTrackedObjectsByIndex = new Dictionary<uint, HyperealVR_TrackedObject>();
         
@@ -424,8 +424,6 @@ namespace VRTK
             if (ctrlDevice == HyDevice.Device_Unknown)
                 return 0f;
 
-            HyInput input = HyInputManager.Instance.GetInputDevice(ctrlDevice);
-
             return (buttonType == ButtonTypes.Trigger ? 0.1f : 0f);
         }
 
@@ -442,8 +440,6 @@ namespace VRTK
             HyDevice ctrlDevice = MappingIndex2HyDevice(index);
             if (ctrlDevice == HyDevice.Device_Unknown)
                 return false;
-
-            HyInput input = HyInputManager.Instance.GetInputDevice(ctrlDevice);
 
             switch (buttonType)
             {
@@ -545,78 +541,6 @@ namespace VRTK
             }
 
             return false;
-        }
-
-        private string GetControllerGripPath(ControllerHand hand, string suffix, ControllerHand forceHand)
-        {
-            switch (VRTK_DeviceFinder.GetHeadsetType(true))
-            {
-                case VRTK_DeviceFinder.Headsets.Vive:
-                    return (forceHand == ControllerHand.Left ? "lgrip" : "rgrip") + suffix;
-                case VRTK_DeviceFinder.Headsets.OculusRift:
-                    return "grip" + suffix;
-            }
-            return null;
-        }
-
-        private string GetControllerTouchpadPath(ControllerHand hand, string suffix)
-        {
-            switch (VRTK_DeviceFinder.GetHeadsetType(true))
-            {
-                case VRTK_DeviceFinder.Headsets.Vive:
-                    return "trackpad" + suffix;
-                case VRTK_DeviceFinder.Headsets.OculusRift:
-                    return "thumbstick" + suffix;
-            }
-            return null;
-        }
-
-        private string GetControllerButtonOnePath(ControllerHand hand, string suffix)
-        {
-            switch (VRTK_DeviceFinder.GetHeadsetType(true))
-            {
-                case VRTK_DeviceFinder.Headsets.Vive:
-                    return null;
-                case VRTK_DeviceFinder.Headsets.OculusRift:
-                    return (hand == ControllerHand.Left ? "x_button" : "a_button") + suffix;
-            }
-            return null;
-        }
-
-        private string GetControllerButtonTwoPath(ControllerHand hand, string suffix)
-        {
-            switch (VRTK_DeviceFinder.GetHeadsetType(true))
-            {
-                case VRTK_DeviceFinder.Headsets.Vive:
-                    return "button" + suffix;
-                case VRTK_DeviceFinder.Headsets.OculusRift:
-                    return (hand == ControllerHand.Left ? "y_button" : "b_button") + suffix;
-            }
-            return null;
-        }
-
-        private string GetControllerSystemMenuPath(ControllerHand hand, string suffix)
-        {
-            switch (VRTK_DeviceFinder.GetHeadsetType(true))
-            {
-                case VRTK_DeviceFinder.Headsets.Vive:
-                    return "sys_button" + suffix;
-                case VRTK_DeviceFinder.Headsets.OculusRift:
-                    return (hand == ControllerHand.Left ? "enter_button" : "home_button") + suffix;
-            }
-            return null;
-        }
-
-        private string GetControllerStartMenuPath(ControllerHand hand, string suffix)
-        {
-            switch (VRTK_DeviceFinder.GetHeadsetType(true))
-            {
-                case VRTK_DeviceFinder.Headsets.Vive:
-                    return null;
-                case VRTK_DeviceFinder.Headsets.OculusRift:
-                    return (hand == ControllerHand.Left ? "enter_button" : "home_button") + suffix;
-            }
-            return null;
         }
 #endif
     }
