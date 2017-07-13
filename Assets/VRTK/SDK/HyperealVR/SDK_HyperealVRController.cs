@@ -442,13 +442,19 @@ namespace VRTK
                 case ButtonTypes.ButtonOne:
                     return false;
                 case ButtonTypes.ButtonTwo:
-                    return false;
+                    if (ctrlDevice == HyDevice.Device_Controller0)
+                        return IsButtonPressed(ctrlDevice, pressType, HyInputKey.Menu);
+                    else
+                        return false;
                 case ButtonTypes.Grip:
                     return IsButtonPressed(ctrlDevice, pressType, HyInputKey.SideTrigger);
                 case ButtonTypes.GripHairline:
                     return false;
                 case ButtonTypes.StartMenu:
-                    return IsButtonPressed(ctrlDevice, pressType, HyInputKey.Menu);
+                    if (ctrlDevice == HyDevice.Device_Controller0)
+                        return false;
+                    else
+                        return IsButtonPressed(ctrlDevice, pressType, HyInputKey.Menu);
                 case ButtonTypes.Trigger:
                     return IsButtonPressed(ctrlDevice, pressType, HyInputKey.IndexTrigger);
                 case ButtonTypes.TriggerHairline:
