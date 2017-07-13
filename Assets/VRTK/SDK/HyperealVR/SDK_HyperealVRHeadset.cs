@@ -58,7 +58,6 @@ namespace VRTK
             {
 				cachedHeadset = GetHeadset();
             }
-            //cachedHeadsetCamera = cachedHeadset.Find("Camera(eye)");
             cachedHeadsetCamera = cachedHeadset.GetComponentInChildren<HyCamera>().transform;
             return cachedHeadsetCamera;
         }

@@ -19,13 +19,13 @@ namespace VRTK
     {
 #if VRTK_DEFINE_SDK_HYPEREALVR
         protected HyRender cachedHyperealVRPlayArea;
+        private const float thickness = 0.1f;
 
         /// <summary>
         /// The InitBoundaries method is run on start of scene and can be used to initialse anything on game start.
         /// </summary>
         public override void InitBoundaries()
         {
-            //var hyInst = HyperealVR.Instance;
         }
 
         /// <summary>
@@ -55,11 +55,8 @@ namespace VRTK
             HyperealApi.GetPlayAreaVertexCount(ref count);
             if (count > 0)
             {
-                var points = new Vector2[count];
-                HyperealApi.GetPlayAreaVertex(points, count);
-
-                float inner = 0.9f;
                 float outer = 1f;
+                float inner = outer - thickness;
 
                 Vector3[] vertices = new Vector3[8];
                 vertices[0] = new Vector3(inner, 0f, -inner);
@@ -73,22 +70,6 @@ namespace VRTK
                 vertices[7] = new Vector3(outer, 0f, outer);
 
                 return vertices;
-                //var outerBoundary = new Vector3();
-                //    var thickness = 0.1f;
-
-                //    var vertices = new Vector3[8];
-
-                //    vertices[0] = new Vector3(outerBoundary.x - thickness, 0f, outerBoundary.z - thickness);
-                //    vertices[1] = new Vector3(0f + thickness, 0f, outerBoundary.z - thickness);
-                //    vertices[2] = new Vector3(0f + thickness, 0f, 0f + thickness);
-                //    vertices[3] = new Vector3(outerBoundary.x - thickness, 0f, 0f + thickness);
-
-                //    vertices[4] = new Vector3(outerBoundary.x, 0f, outerBoundary.z);
-                //    vertices[5] = new Vector3(0f, 0f, outerBoundary.z);
-                //    vertices[6] = new Vector3(0f, 0f, 0f);
-                //    vertices[7] = new Vector3(outerBoundary.x, 0f, 0f);
-
-                //    return vertices;
             }
             return null;
         }
@@ -100,7 +81,7 @@ namespace VRTK
         /// <returns>The thickness of the drawn border.</returns>
         public override float GetPlayAreaBorderThickness()
         {
-            return 0.1f;
+            return thickness;
         }
 
         /// <summary>
@@ -128,7 +109,6 @@ namespace VRTK
         /// <param name="value">The state of whether the drawn border should be displayed or not.</param>
         public override void SetDrawAtRuntime(bool value)
         {
-            
         }
 #endif
     }

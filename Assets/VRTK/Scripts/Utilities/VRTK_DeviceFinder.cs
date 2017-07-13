@@ -37,8 +37,7 @@ namespace VRTK
             OculusRiftCV1,
             Vive,
             ViveMV,
-            ViveDVT,
-            Pano
+            ViveDVT
         }
 
         private static string cachedHeadsetType = "";

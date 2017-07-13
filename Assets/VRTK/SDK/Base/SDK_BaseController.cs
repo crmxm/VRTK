@@ -114,8 +114,7 @@ namespace VRTK
             SteamVR_OculusTouch,
             Oculus_OculusTouch,
             Daydream_Controller,
-            Ximmerse_Flip,
-            Hypereal_Sens
+            Ximmerse_Flip
         }
 
         /// <summary>

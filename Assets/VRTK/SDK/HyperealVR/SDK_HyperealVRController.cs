@@ -25,15 +25,6 @@ namespace VRTK
         private VRTK_TrackedController cachedLeftTrackedObject;
         private VRTK_TrackedController cachedRightTrackedObject;
 
-        //private bool[] previousHairTriggerState = new bool[2];
-        //private bool[] currentHairTriggerState = new bool[2];
-
-        //private bool[] previousHairGripState = new bool[2];
-        //private bool[] currentHairGripState = new bool[2];
-        //private Dictionary<GameObject, HyperealVR_TrackedObject> cachedTrackedObjectsByGameObject = new Dictionary<GameObject, HyperealVR_TrackedObject>();
-        //private Dictionary<uint, HyperealVR_TrackedObject> cachedTrackedObjectsByIndex = new Dictionary<uint, HyperealVR_TrackedObject>();
-        
-
         /// <summary>
         /// The ProcessUpdate method enables an SDK to run logic for every Unity Update
         /// </summary>
@@ -146,16 +137,20 @@ namespace VRTK
         /// <returns>The GameObject containing the left hand controller.</returns>
         public override GameObject GetControllerLeftHand(bool actual = false)
         {
-			if (actual) {
-				HyTrackObjRig trackedObjRig = VRTK_SharedMethods.FindEvenInactiveGameObject<HyTrackObjRig> ().GetComponent<HyTrackObjRig>();
-				if (trackedObjRig)
+            if (actual)
+            {
+                HyTrackObjRig trackedObjRig = VRTK_SharedMethods.FindEvenInactiveComponent<HyTrackObjRig>();
+                if (trackedObjRig)
                     return trackedObjRig.leftController;
-			} else {
-				var sdkManager = VRTK_SDKManager.instance;
-				if (sdkManager != null) {
-					return sdkManager.scriptAliasLeftController;
-				}
-			}
+            }
+            else
+            {
+                var sdkManager = VRTK_SDKManager.instance;
+                if (sdkManager != null)
+                {
+                    return sdkManager.scriptAliasLeftController;
+                }
+            }
             return null;
         }
 
@@ -166,16 +161,20 @@ namespace VRTK
         /// <returns>The GameObject containing the right hand controller.</returns>
         public override GameObject GetControllerRightHand(bool actual = false)
         {
-			if (actual) {
-				HyTrackObjRig trackedObjRig = VRTK_SharedMethods.FindEvenInactiveGameObject<HyTrackObjRig> ().GetComponent<HyTrackObjRig>();
-				if (trackedObjRig)
+            if (actual)
+            {
+                HyTrackObjRig trackedObjRig = VRTK_SharedMethods.FindEvenInactiveComponent<HyTrackObjRig>();
+                if (trackedObjRig)
                     return trackedObjRig.rightController;
-			} else {
-				var sdkManager = VRTK_SDKManager.instance;
-				if (sdkManager != null) {
-					return sdkManager.scriptAliasRightController;
-				}
-			}
+            }
+            else
+            {
+                var sdkManager = VRTK_SDKManager.instance;
+                if (sdkManager != null)
+                {
+                    return sdkManager.scriptAliasRightController;
+                }
+            }
             return null;
         }
 
@@ -267,8 +266,7 @@ namespace VRTK
         /// <returns>A GameObject containing the object that has a render model for the controller.</returns>
         public override GameObject GetControllerRenderModel(VRTK_ControllerReference controller)
         {
-            //TODO: NOT IMPLEMENTED
-            return null;
+            return controller.actual.GetComponentInChildren<MeshRenderer>().gameObject;
         }
 
         /// <summary>
@@ -278,7 +276,6 @@ namespace VRTK
         /// <param name="state">If true and the render model has a scroll wheen then it will be displayed, if false then the scroll wheel will be hidden.</param>
         public override void SetControllerRenderModelWheel(GameObject renderModel, bool state)
         {
-            
         }
 
         /// <summary>
@@ -380,7 +377,6 @@ namespace VRTK
         /// <returns>Returns true if the touchpad is not currently being touched or moved.</returns>
         public override bool IsTouchpadStatic(bool isTouched, Vector2 currentAxisValues, Vector2 previousAxisValues, int compareFidelity)
         {
-            //TODO: 
             return (!isTouched || VRTK_SharedMethods.Vector2ShallowCompare(currentAxisValues, previousAxisValues, compareFidelity));
         }
 
@@ -482,12 +478,12 @@ namespace VRTK
                 if (cachedLeftTrackedObject == null && sdkManager.loadedSetup.actualLeftController)
                 {
                     cachedLeftController = sdkManager.loadedSetup.actualLeftController.GetComponent<VRTK_TrackedController>();
-					cachedLeftController.index = 0;
+                    cachedLeftController.index = 0;
                 }
                 if (cachedRightTrackedObject == null && sdkManager.loadedSetup.actualRightController)
                 {
                     cachedRightController = sdkManager.loadedSetup.actualRightController.GetComponent<VRTK_TrackedController>();
-					cachedRightController.index = 1;
+                    cachedRightController.index = 1;
                 }
             }
         }
@@ -508,17 +504,19 @@ namespace VRTK
             return trackedObject;
         }
 
-		private HyDevice MappingIndex2HyDevice(uint index) {
-			switch (index) {
-			case 0:
-				return HyDevice.Device_Controller0;
-			case 1:
-				return HyDevice.Device_Controller1;
-			default:
-				break;
-			}
-			return HyDevice.Device_Unknown;
-		}
+        private HyDevice MappingIndex2HyDevice(uint index)
+        {
+            switch (index)
+            {
+                case 0:
+                    return HyDevice.Device_Controller0;
+                case 1:
+                    return HyDevice.Device_Controller1;
+                default:
+                    break;
+            }
+            return HyDevice.Device_Unknown;
+        }
 
         private bool IsButtonPressed(HyDevice index, ButtonPressTypes type, HyInputKey button)
         {
