@@ -1,4 +1,4 @@
-﻿// HyperealVR System|SDK_HyperealVR|
+﻿// HyperealVR System|SDK_HyperealVR|002
 namespace VRTK
 {
 #if VRTK_DEFINE_SDK_HYPEREALVR
@@ -41,7 +41,6 @@ namespace VRTK
         /// <param name="force">If true then Interleaved Reprojection will be forced on, if false it will not be forced on.</param>
         public override void ForceInterleavedReprojectionOn(bool force)
         {
-
         }
 #endif
     }

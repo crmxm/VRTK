@@ -1,4 +1,4 @@
-﻿// HyperealVR Headset|SDK_HyperealVR|
+﻿// HyperealVR Headset|SDK_HyperealVR|003
 namespace VRTK
 {
 #if VRTK_DEFINE_SDK_HYPEREALVR

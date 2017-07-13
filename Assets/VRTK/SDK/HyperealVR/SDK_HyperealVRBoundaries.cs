@@ -1,4 +1,4 @@
-﻿// HyperealVR Boundaries|SDK_HyperealVR|
+﻿// HyperealVR Boundaries|SDK_HyperealVR|005
 namespace VRTK
 {
 #if VRTK_DEFINE_SDK_HYPEREALVR
@@ -47,7 +47,6 @@ namespace VRTK
         /// <summary>
         /// The GetPlayAreaVertices method returns the points of the play area boundaries.
         /// </summary>
-        /// <param name="playArea">The GameObject containing the play area representation.</param>
         /// <returns>A Vector3 array of the points in the scene that represent the play area boundaries.</returns>
         public override Vector3[] GetPlayAreaVertices()
         {
@@ -77,7 +76,6 @@ namespace VRTK
         /// <summary>
         /// The GetPlayAreaBorderThickness returns the thickness of the drawn border for the given play area.
         /// </summary>
-        /// <param name="playArea">The GameObject containing the play area representation.</param>
         /// <returns>The thickness of the drawn border.</returns>
         public override float GetPlayAreaBorderThickness()
         {
@@ -87,7 +85,6 @@ namespace VRTK
         /// <summary>
         /// The IsPlayAreaSizeCalibrated method returns whether the given play area size has been auto calibrated by external sensors.
         /// </summary>
-        /// <param name="playArea">The GameObject containing the play area representation.</param>
         /// <returns>Returns true if the play area size has been auto calibrated and set by external sensors.</returns>
         public override bool IsPlayAreaSizeCalibrated()
         {

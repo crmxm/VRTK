@@ -1,4 +1,4 @@
-﻿// HyperealVR Controller|SDK_HyperealVR|
+﻿// HyperealVR Controller|SDK_HyperealVR|004
 namespace VRTK
 {
 #if VRTK_DEFINE_SDK_HYPEREALVR
@@ -28,18 +28,18 @@ namespace VRTK
         /// <summary>
         /// The ProcessUpdate method enables an SDK to run logic for every Unity Update
         /// </summary>
-        /// <param name="index">The index of the controller.</param>
+        /// <param name="controllerReference">The reference for the controller.</param>
         /// <param name="options">A dictionary of generic options that can be used to within the update.</param>
-        public override void ProcessUpdate(VRTK_ControllerReference ctrl, Dictionary<string, object> options)
+        public override void ProcessUpdate(VRTK_ControllerReference controllerReference, Dictionary<string, object> options)
         {
         }
 
         /// <summary>
         /// The ProcessFixedUpdate method enables an SDK to run logic for every Unity FixedUpdate
         /// </summary>
-        /// <param name="index">The index of the controller.</param>
+        /// <param name="controllerReference">The reference for the controller.</param>
         /// <param name="options">A dictionary of generic options that can be used to within the fixed update.</param>
-        public override void ProcessFixedUpdate(VRTK_ControllerReference ctrl, Dictionary<string, object> options)
+        public override void ProcessFixedUpdate(VRTK_ControllerReference controllerReference, Dictionary<string, object> options)
         {
         }
 
@@ -49,7 +49,7 @@ namespace VRTK
         /// <returns>The ControllerType based on the SDK and headset being used.</returns>
         public override ControllerType GetCurrentControllerType()
         {
-            return ControllerType.Hypereal_Sens;
+            return ControllerType.Custom;
         }
 
         /// <summary>
@@ -113,11 +113,11 @@ namespace VRTK
         /// <summary>
         /// The GetControllerOrigin method returns the origin of the given controller.
         /// </summary>
-        /// <param name="controller">The controller to retrieve the origin from.</param>
+        /// <param name="controllerReference">The controller to retrieve the origin from.</param>
         /// <returns>A Transform containing the origin of the controller.</returns>
-        public override Transform GetControllerOrigin(VRTK_ControllerReference controller)
+        public override Transform GetControllerOrigin(VRTK_ControllerReference controllerReference)
         {
-            return controller.actual.transform;
+            return controllerReference.actual.transform;
         }
 
         /// <summary>
@@ -262,11 +262,11 @@ namespace VRTK
         /// <summary>
         /// The GetControllerRenderModel method gets the game object that contains the given controller's render model.
         /// </summary>
-        /// <param name="controller">The GameObject to check.</param>
+        /// <param name="controllerReference">The GameObject to check.</param>
         /// <returns>A GameObject containing the object that has a render model for the controller.</returns>
-        public override GameObject GetControllerRenderModel(VRTK_ControllerReference controller)
+        public override GameObject GetControllerRenderModel(VRTK_ControllerReference controllerReference)
         {
-            return controller.actual.GetComponentInChildren<MeshRenderer>().gameObject;
+            return controllerReference.actual.GetComponentInChildren<MeshRenderer>().gameObject;
         }
 
         /// <summary>
@@ -279,13 +279,13 @@ namespace VRTK
         }
 
         /// <summary>
-        /// The HapticPulseOnIndex method is used to initiate a simple haptic pulse on the tracked object of the given index.
+        /// The HapticPulse/2 method is used to initiate a simple haptic pulse on the tracked object of the given controller reference.
         /// </summary>
-        /// <param name="index">The index of the tracked object to initiate the haptic pulse on.</param>
+        /// <param name="controllerReference">The reference to the tracked object to initiate the haptic pulse on.</param>
         /// <param name="strength">The intensity of the rumble of the controller motor. `0` to `1`.</param>
-        public override void HapticPulse(VRTK_ControllerReference ctrl, float strength = 0.5f)
+        public override void HapticPulse(VRTK_ControllerReference controllerReference, float strength = 0.5f)
         {
-            uint index = VRTK_ControllerReference.GetRealIndex(ctrl);
+            uint index = VRTK_ControllerReference.GetRealIndex(controllerReference);
             HyDevice ctrlDevice = MappingIndex2HyDevice(index);
 
             if (ctrlDevice == HyDevice.Device_Unknown)
@@ -315,13 +315,13 @@ namespace VRTK
         }
 
         /// <summary>
-        /// The GetVelocityOnIndex method is used to determine the current velocity of the tracked object on the given index.
+        /// The GetVelocity method is used to determine the current velocity of the tracked object on the given controller reference.
         /// </summary>
-        /// <param name="index">The index of the tracked object to check for.</param>
+        /// <param name="controllerReference">The reference to the tracked object to check for.</param>
         /// <returns>A Vector3 containing the current velocity of the tracked object.</returns>
-        public override Vector3 GetVelocity(VRTK_ControllerReference ctrl)
+        public override Vector3 GetVelocity(VRTK_ControllerReference controllerReference)
         {
-            uint index = VRTK_ControllerReference.GetRealIndex(ctrl);
+            uint index = VRTK_ControllerReference.GetRealIndex(controllerReference);
             SetTrackedControllerCaches();
             var sdkManager = VRTK_SDKManager.instance;
             if (sdkManager != null)
@@ -342,13 +342,13 @@ namespace VRTK
         }
 
         /// <summary>
-        /// The GetAngularVelocityOnIndex method is used to determine the current angular velocity of the tracked object on the given index.
+        /// The GetAngularVelocity method is used to determine the current angular velocity of the tracked object on the given controller reference.
         /// </summary>
-        /// <param name="index">The index of the tracked object to check for.</param>
+        /// <param name="controllerReference">The reference to the tracked object to check for.</param>
         /// <returns>A Vector3 containing the current angular velocity of the tracked object.</returns>
-        public override Vector3 GetAngularVelocity(VRTK_ControllerReference ctrl)
+        public override Vector3 GetAngularVelocity(VRTK_ControllerReference controllerReference)
         {
-            uint index = VRTK_ControllerReference.GetRealIndex(ctrl);
+            uint index = VRTK_ControllerReference.GetRealIndex(controllerReference);
             SetTrackedControllerCaches();
             var sdkManager = VRTK_SDKManager.instance;
             if (sdkManager != null)

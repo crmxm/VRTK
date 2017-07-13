@@ -1,4 +1,4 @@
-﻿// HyperealVR Defines|SDK_HyperealVR|
+﻿// HyperealVR Defines|SDK_HyperealVR|001
 namespace VRTK
 {
     using System;
